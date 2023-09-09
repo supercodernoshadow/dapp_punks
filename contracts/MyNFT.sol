@@ -13,12 +13,27 @@ interface IMyERC721 is IERC721 {
     
 contract MyNFT is ERC721Enumerable, Ownable {
   
-    
+    mapping(bytes32 => bool) private allowList;
+
     constructor(string memory _name, string memory _symbol) ERC721(_name, _symbol) {}
 
 
 
-    function mint(address to, uint256 tokenId) external onlyOwner {
+    function mint(address to, uint256 tokenId) external {
+        require(isOnList(msg.sender), "this address is not allowed to buy tokens");
+
         _mint(to, tokenId);
     }
+
+    function addAddress(address _address) public onlyOwner{
+        bytes32 hash = keccak256(abi.encodePacked(_address));
+        allowList[hash] = true;
+    }
+
+    function isOnList(address _address) public view returns (bool){
+        bytes32 hash = keccak256(abi.encodePacked(_address));
+        return allowList[hash];
+    }
+
+
 }
