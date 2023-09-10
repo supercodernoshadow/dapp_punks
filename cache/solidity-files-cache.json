@@ -629,8 +629,8 @@
       ]
     },
     "/Users/dareadebonojo/dapp_punks/contracts/MyNFT.sol": {
-      "lastModificationDate": 1694373476044,
-      "contentHash": "81d7e37eb98260dd61e212ebfdb0afc1",
+      "lastModificationDate": 1694381159651,
+      "contentHash": "f3ae27bb8bce9313fe3033f021e4bc09",
       "sourceName": "contracts/MyNFT.sol",
       "solcConfig": {
         "version": "0.8.9",
@@ -659,6 +659,7 @@
         "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol",
         "@openzeppelin/contracts/token/ERC721/IERC721.sol",
         "@openzeppelin/contracts/access/Ownable.sol",
+        "@openzeppelin/contracts/utils/Strings.sol",
         "hardhat/console.sol"
       ],
       "versionPragmas": [
