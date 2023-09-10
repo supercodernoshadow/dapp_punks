@@ -36,10 +36,17 @@ contract MyNFT is ERC721Enumerable, Ownable {
 
 
 
-    function mint(address to, uint256 tokenId) external {
-        require(isOnList(msg.sender), "this address is not allowed to buy tokens");
+    function mint(uint256 _mintAmount) external payable {
+        require(block.timestamp >= allowMintingOn, "Minting not open yet");
+        require(isOnList(msg.sender), "this address is not on the allow list");
+        require(msg.value >= cost * _mintAmount, "insufficent payment");
+        
+        uint256 supply = totalSupply();
 
-        _mint(to, tokenId);
+        for(uint256 i = 1; i <= _mintAmount; i++){
+            _safeMint(msg.sender, supply + i);
+
+        }
     }
 
     function addAddress(address _address) public onlyOwner{
