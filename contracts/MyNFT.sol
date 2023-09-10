@@ -16,6 +16,8 @@ interface IMyERC721 is IERC721 {
 contract MyNFT is ERC721Enumerable, Ownable {
     uint256 public cost;
     uint256 public maxSupply;
+    uint256 public allowMintingOn;
+    string public baseURI;
   
     mapping(bytes32 => bool) private allowList;
 
@@ -23,9 +25,13 @@ contract MyNFT is ERC721Enumerable, Ownable {
         string memory _name, 
         string memory _symbol,
         uint256 _cost,
-        uint256 _maxSupply) ERC721(_name, _symbol) {
+        uint256 _maxSupply,
+        uint256 _allowMintingOn,
+        string memory _baseURI) ERC721(_name, _symbol) {
         cost = _cost;
         maxSupply = _maxSupply;
+        allowMintingOn = _allowMintingOn;
+        baseURI = _baseURI;
     }
 
 

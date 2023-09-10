@@ -629,8 +629,8 @@
       ]
     },
     "/Users/dareadebonojo/dapp_punks/contracts/MyNFT.sol": {
-      "lastModificationDate": 1694368372344,
-      "contentHash": "fcba7ea008c634e150f815ad232df84f",
+      "lastModificationDate": 1694370393673,
+      "contentHash": "d62ed70a845e1521f0db6328c288df7b",
       "sourceName": "contracts/MyNFT.sol",
       "solcConfig": {
         "version": "0.8.9",
