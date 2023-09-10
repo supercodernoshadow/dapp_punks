@@ -8,11 +8,15 @@ const tokens = (n) => {
 const ether = tokens
 let MyNFT, accounts, deployer, user1, user2
 
-describe('MyNFT', () => {
+describe('NFT', () => {
+  const COST = ether(10)
+  const NAME = 'Dapp Punks'
+  const SYMBOL = 'DP'
+  const MAX_SUPPLY = 25
 
   beforeEach(async () => {
     MyNFT = await ethers.getContractFactory('MyNFT')
-    myNFT = await MyNFT.deploy('MyNFT', 'MNFT')
+    myNFT = await MyNFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY)
     await myNFT.deployed()
 
     accounts = await ethers.getSigners()
@@ -23,14 +27,25 @@ describe('MyNFT', () => {
 
   describe('Deployment', () => {
     it('has correct name', async () => {
-      const name = await myNFT.name()
-      expect(name).to.equal('MyNFT')
+      expect(await myNFT.name()).to.equal(NAME)
     })
 
     it('has correct symbol', async () => {
-      const symbol = await myNFT.symbol()
-      expect(symbol).to.equal('MNFT')
+      expect(await myNFT.symbol()).to.equal(SYMBOL)
     })
+
+    it('returns cost to mint', async () => {
+      expect(await myNFT.cost()).to.equal(COST)
+    })
+
+    it('returns cost to mint', async () => {
+      expect(await myNFT.cost()).to.equal(COST)
+    })
+
+    it('returns max supply', async () => {
+      expect(await myNFT.maxSupply()).to.equal(MAX_SUPPLY)
+    })
+    
   })
 
   describe('Minting', () => {

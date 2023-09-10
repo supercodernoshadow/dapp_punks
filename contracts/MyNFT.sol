@@ -9,13 +9,24 @@ import "hardhat/console.sol";
 interface IMyERC721 is IERC721 {
     function name() external view returns (string memory);
     function symbol() external view returns (string memory);
+    function maxSupply() external view returns (uint256);
+
 }
     
 contract MyNFT is ERC721Enumerable, Ownable {
+    uint256 public cost;
+    uint256 public maxSupply;
   
     mapping(bytes32 => bool) private allowList;
 
-    constructor(string memory _name, string memory _symbol) ERC721(_name, _symbol) {}
+    constructor(
+        string memory _name, 
+        string memory _symbol,
+        uint256 _cost,
+        uint256 _maxSupply) ERC721(_name, _symbol) {
+        cost = _cost;
+        maxSupply = _maxSupply;
+    }
 
 
 
