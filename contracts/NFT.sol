@@ -19,13 +19,17 @@ contract NFT is ERC721Enumerable, Ownable {
 
     uint256 public cost;
     uint256 public maxSupply;
+    uint256 public maxMint;
     uint256 public allowMintingOn;
     string public baseURI;
     string public baseExtension = '.json';
+    bool public pauseMinting = false;
   
     mapping(bytes32 => bool) private allowList;
 
     event Mint(uint256 amount, address minter);
+    event Withdraw(uint256 amount, address owner);
+
 
 
     constructor(
@@ -33,10 +37,12 @@ contract NFT is ERC721Enumerable, Ownable {
         string memory _symbol,
         uint256 _cost,
         uint256 _maxSupply,
+        uint256 _maxMint,
         uint256 _allowMintingOn,
         string memory _baseURI) ERC721(_name, _symbol) {
         cost = _cost;
         maxSupply = _maxSupply;
+        maxMint = _maxMint;
         allowMintingOn = _allowMintingOn;
         baseURI = _baseURI;
     }
@@ -45,9 +51,11 @@ contract NFT is ERC721Enumerable, Ownable {
 
     function mint(uint256 _mintAmount) external payable {
         require(block.timestamp >= allowMintingOn, "Minting not open yet");
+        require(!pauseMinting, "Minting has been paused");
         require(isOnList(msg.sender), "this address is not on the allow list");
         require(_mintAmount > 0, "must mint at least 1 NFT");
         require(msg.value >= cost * _mintAmount, "insufficent payment");
+        require(_mintAmount <= maxMint, "Cannot mint more than 5 NFTs");
 
         
         uint256 supply = totalSupply();
@@ -91,6 +99,29 @@ contract NFT is ERC721Enumerable, Ownable {
             tokenIds[i] = tokenOfOwnerByIndex(_owner, i);
         }
         return tokenIds;
+    }
+
+    // Owner functions
+
+    function withdraw() public onlyOwner {
+        uint256 balance = address(this).balance;
+
+        (bool success, ) = payable(msg.sender).call{value: balance}("");
+        require(success);
+
+        emit Withdraw(balance, msg.sender);
+    }
+
+    function setCost(uint256 _newCost) public onlyOwner {
+        cost = _newCost;
+    }
+
+    function pauseMint() public onlyOwner {
+        pauseMinting = true;
+    }
+
+    function unPauseMint() public onlyOwner {
+        pauseMinting = false;
     }
 
 
