@@ -32,8 +32,9 @@ contract NFT is ERC721Enumerable, Ownable {
     bool public pauseMinting = false;
   
     mapping(bytes32 => bool) private allowList;
-    // Mapping from token ID to stake status
-    mapping(uint256 => bool) private stakedTokens;
+    // Mapping from token ID to the address that minted it
+    mapping(uint256 => address) private tokenOrigins;
+    mapping(uint256 => uint256) public stakedTimestamps;
 
 
     event Mint(uint256 amount, address minter);
@@ -72,7 +73,7 @@ contract NFT is ERC721Enumerable, Ownable {
 
         for(uint256 i = 1; i <= _mintAmount; i++){
             _safeMint(msg.sender, supply + i);
-
+            tokenOrigins[supply + i] = msg.sender;
         }
 
         emit Mint(_mintAmount, msg.sender);
@@ -131,6 +132,10 @@ contract NFT is ERC721Enumerable, Ownable {
 
     function unPauseMint() public onlyOwner {
         pauseMinting = false;
+    }
+
+    function getTokenOrigin(uint256 _tokenId) external view returns (address) {
+        return tokenOrigins[_tokenId];
     }
 
 }

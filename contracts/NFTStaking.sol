@@ -7,18 +7,29 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "./RewardsToken.sol";
 import "./NFT.sol";
 import "hardhat/console.sol";
 
 contract NFTStaking is Ownable {
-	IERC721 public nft;
+	using SafeMath for uint256;
 
-    mapping(uint256 => bool) public stakedTokens;
+    IERC721 private nft;
 
     event NFTStaked(address indexed user, uint256 tokenId);
+    event NFTUnStaked(address indexed user, uint256 tokenId);
+
+    RewardsToken public rewardToken;
+    mapping(uint256 => bool) public stakedTokens;
+    mapping(uint256 => address) private tokenOrigins;
 
 
-    constructor(address _nftAddress) {
+
+
+    constructor(address _nftAddress, address _rewardTokenAddress) {
+
+        rewardToken = RewardsToken(_rewardTokenAddress);
         nft = IERC721(_nftAddress);
     }
 
@@ -26,26 +37,29 @@ contract NFTStaking is Ownable {
     require(nft.ownerOf(tokenId) == msg.sender, "Not the owner");
     require(!stakedTokens[tokenId], "Token already staked");
 
+    // Mark the token as staked
+    stakedTokens[tokenId] = true;
+    tokenOrigins[tokenId] = msg.sender;
     //nft.approve(address(this), tokenId);
     // Transfer the NFT to the contract
     nft.safeTransferFrom(msg.sender, address(this), tokenId);
 
-    // Mark the token as staked
-    stakedTokens[tokenId] = true;
 
     emit NFTStaked(msg.sender, tokenId);
     }
 
     function unstakeNFT(uint256 tokenId) external {
 	    require(stakedTokens[tokenId], "Token is not staked");
-	    require(nft.ownerOf(tokenId) == address(this), "Contract is not the owner of this NFT");
+	    require(tokenOrigins[tokenId] == msg.sender, "You did not desposit this NFT");
 
+	    stakedTokens[tokenId] = false;
 	    // Directly transfer the NFT back to the owner without needing an approval
 	    nft.transferFrom(address(this), msg.sender, tokenId);
 
-	    stakedTokens[tokenId] = false;
-	}
 
+	    emit NFTUnStaked(msg.sender, tokenId);
+
+	}
 
     function isStaked(uint256 tokenId) external view returns (bool) {
         return stakedTokens[tokenId];

@@ -126,7 +126,8 @@ describe('NFT', () => {
 
       it('emits Mint event', async () => {
         expect(transaction).to.emit(nft, 'Withdraw')
-          .withArgs(COST, deployer.address)      })
+          .withArgs(COST, deployer.address)      
+      })
 	  })
 
   	describe('Failure', () => {
@@ -278,40 +279,76 @@ describe('NFT', () => {
     })
   })
 
-  describe('Staking', () => {
+  describe('Staking', () => { 
     const ALLOW_MINTING_ON = Date.now().toString().slice(0, 10) // Now
 
+    beforeEach(async () => {
+          const NFT = await ethers.getContractFactory('NFT')
+          nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI)
+          await nft.connect(deployer).addAddress(minter.address)
+
+          const RewardsTokenSupply = ether(1000000000)
+          const RewardsToken = await ethers.getContractFactory('RewardsToken')
+          token = await RewardsToken.deploy(RewardsTokenSupply)
+
+          const NFTStaking = await ethers.getContractFactory('NFTStaking')
+          stake = await NFTStaking.deploy(nft.address, token.address)
+
+          transaction = await nft.connect(minter).mint(1, { value: COST })
+          result = await transaction.wait()
+
+          const owner = await nft.ownerOf(1)
+
+          await nft.connect(minter).setApprovalForAll(stake.address, true);
+
+
+        })
+
+
+    describe('Success', () => { 
       beforeEach(async () => {
-        const NFT = await ethers.getContractFactory('NFT')
-        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI)
-        await nft.connect(deployer).addAddress(minter.address)
-
-        const NFTStaking = await ethers.getContractFactory('NFTStaking')
-        stake = await NFTStaking.deploy(nft.address)
-
-        transaction = await nft.connect(minter).mint(1, { value: COST })
-        result = await transaction.wait()
-
-        const owner = await nft.ownerOf(1)
-
-        await nft.connect(minter).setApprovalForAll(stake.address, true);
-
-        await stake.connect(minter).stakeNFT(1)
-
+          transaction = await stake.connect(minter).stakeNFT(1)
+          result = await transaction.wait()
       })
 
-      it('updates staking mapping', async () => {
-        expect(await stake.isStaked(1)).to.equal(true)
-      })
+        it('updates staking mapping', async () => {
+          expect(await stake.isStaked(1)).to.equal(true)
+        })
 
-      it('transfers NFT to contract', async () => {
-        expect(await nft.ownerOf(1)).to.equal(stake.address)
-      })
+        it('transfers NFT to contract', async () => {
+          expect(await nft.ownerOf(1)).to.equal(stake.address)
+        })
 
-      it('allows withdraws', async () => {
-        await stake.connect(minter).unstakeNFT(1)
-        expect(await nft.ownerOf(1)).to.equal(minter.address)
-      })
+        it('emits a stake event', async () => {
+            await expect(transaction)
+                .to.emit(stake, 'NFTStaked')
+                .withArgs(minter.address, 1);
+        })
+
+        it('allows withdraws', async () => {
+          await stake.connect(minter).unstakeNFT(1)
+          expect(await nft.ownerOf(1)).to.equal(minter.address)
+        })
+
+        it('emits unstake event', async () => {
+            const transaction = await stake.connect(minter).unstakeNFT(1);
+            await expect(transaction)
+                .to.emit(stake, 'NFTUnStaked')
+                .withArgs(minter.address, 1);
+        })
+
+    })
+
+    describe('Failure', () => { 
+
+        it('prevents non-owner from staking', async () => {
+          await expect(stake.connect(minter2).stakeNFT(1)).to.be.revertedWith('Not the owner');
+        })
+        it('prevents non-owner from unstaking', async () => {
+          await stake.connect(minter).stakeNFT(1)
+          await expect(stake.connect(minter2).unstakeNFT(1)).to.be.reverted;
+        })
+    })
   })
 
   describe('Misc', () => {
