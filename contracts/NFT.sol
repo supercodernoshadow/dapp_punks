@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "hardhat/console.sol";
@@ -11,7 +12,12 @@ interface IMyERC721 is IERC721 {
     function name() external view returns (string memory);
     function symbol() external view returns (string memory);
     function maxSupply() external view returns (uint256);
+    function approve(address to, uint256 tokenId) external;
 
+}
+
+interface IMyERC721Receiver is IERC721Receiver {
+   function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) external returns (bytes4);
 }
     
 contract NFT is ERC721Enumerable, Ownable {
@@ -26,6 +32,9 @@ contract NFT is ERC721Enumerable, Ownable {
     bool public pauseMinting = false;
   
     mapping(bytes32 => bool) private allowList;
+    // Mapping from token ID to stake status
+    mapping(uint256 => bool) private stakedTokens;
+
 
     event Mint(uint256 amount, address minter);
     event Withdraw(uint256 amount, address owner);
@@ -122,6 +131,38 @@ contract NFT is ERC721Enumerable, Ownable {
 
     function unPauseMint() public onlyOwner {
         pauseMinting = false;
+    }
+
+    function stakeNFT(uint256 tokenId) external {
+    require(ownerOf(tokenId) == msg.sender, "Not the owner");
+    require(!stakedTokens[tokenId], "Token already staked");
+
+    // Transfer the NFT to the contract
+    safeTransferFrom(msg.sender, address(this), tokenId);
+
+    // Mark the token as staked
+    stakedTokens[tokenId] = true;
+
+    }
+
+    function unstakeNFT(uint256 tokenId) external {
+        require(stakedTokens[tokenId], "Token is not staked");
+        
+        _approve(msg.sender, tokenId);
+        // Transfer the NFT back to the owner
+        safeTransferFrom(address(this), msg.sender, tokenId);
+
+        // Mark the token as not staked
+        stakedTokens[tokenId] = false;
+    }
+
+    function isStaked(uint256 tokenId) external view returns (bool) {
+        return stakedTokens[tokenId];
+    }
+
+    // Receiving NFTs
+    function onERC721Received(address, address, uint256, bytes calldata) external pure returns (bytes4) {
+        return this.onERC721Received.selector;
     }
 
 

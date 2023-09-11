@@ -278,6 +278,35 @@ describe('NFT', () => {
     })
   })
 
+  describe('Staking', () => {
+    const ALLOW_MINTING_ON = Date.now().toString().slice(0, 10) // Now
+
+      beforeEach(async () => {
+        const NFT = await ethers.getContractFactory('NFT')
+        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI)
+        await nft.connect(deployer).addAddress(minter.address)
+
+        transaction = await nft.connect(minter).mint(1, { value: COST })
+        result = await transaction.wait()
+
+        await nft.connect(minter).stakeNFT(1)
+
+      })
+
+      it('updates staking mapping', async () => {
+        expect(await nft.isStaked(1)).to.equal(true)
+      })
+
+      it('transfers NFT to contract', async () => {
+        expect(await nft.ownerOf(1)).to.equal(nft.address)
+      })
+
+      it('allows withdraws', async () => {
+        await nft.connect(minter).unstakeNFT(1)
+        expect(await nft.ownerOf(1)).to.equal(minter.address)
+      })
+  })
+
   describe('Misc', () => {
       const ALLOW_MINTING_ON = Date.now().toString().slice(0, 10) // Now
 
