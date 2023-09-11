@@ -1215,8 +1215,8 @@
       ]
     },
     "/Users/dareadebonojo/dapp_punks/contracts/NFT.sol": {
-      "lastModificationDate": 1694393126779,
-      "contentHash": "9d91f03ec56c315f1d16ceee405360d4",
+      "lastModificationDate": 1694397235551,
+      "contentHash": "543fc5a4a86995059414f1c9581c5628",
       "sourceName": "contracts/NFT.sol",
       "solcConfig": {
         "version": "0.8.9",
@@ -1256,6 +1256,50 @@
         "IMyERC721",
         "IMyERC721Receiver",
         "NFT"
+      ]
+    },
+    "/Users/dareadebonojo/dapp_punks/contracts/NFTStaking.sol": {
+      "lastModificationDate": 1694399854410,
+      "contentHash": "94e3949321d426c6f74b85bcb60e4d88",
+      "sourceName": "contracts/NFTStaking.sol",
+      "solcConfig": {
+        "version": "0.8.9",
+        "settings": {
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol",
+        "@openzeppelin/contracts/token/ERC721/ERC721.sol",
+        "@openzeppelin/contracts/token/ERC721/IERC721.sol",
+        "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol",
+        "@openzeppelin/contracts/access/Ownable.sol",
+        "@openzeppelin/contracts/utils/Strings.sol",
+        "./NFT.sol",
+        "hardhat/console.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.0"
+      ],
+      "artifacts": [
+        "NFTStaking"
       ]
     }
   }

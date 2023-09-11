@@ -133,37 +133,4 @@ contract NFT is ERC721Enumerable, Ownable {
         pauseMinting = false;
     }
 
-    function stakeNFT(uint256 tokenId) external {
-    require(ownerOf(tokenId) == msg.sender, "Not the owner");
-    require(!stakedTokens[tokenId], "Token already staked");
-
-    // Transfer the NFT to the contract
-    safeTransferFrom(msg.sender, address(this), tokenId);
-
-    // Mark the token as staked
-    stakedTokens[tokenId] = true;
-
-    }
-
-    function unstakeNFT(uint256 tokenId) external {
-        require(stakedTokens[tokenId], "Token is not staked");
-        
-        _approve(msg.sender, tokenId);
-        // Transfer the NFT back to the owner
-        safeTransferFrom(address(this), msg.sender, tokenId);
-
-        // Mark the token as not staked
-        stakedTokens[tokenId] = false;
-    }
-
-    function isStaked(uint256 tokenId) external view returns (bool) {
-        return stakedTokens[tokenId];
-    }
-
-    // Receiving NFTs
-    function onERC721Received(address, address, uint256, bytes calldata) external pure returns (bytes4) {
-        return this.onERC721Received.selector;
-    }
-
-
 }
