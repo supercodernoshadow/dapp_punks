@@ -24,7 +24,8 @@ contract NFTStaking is Ownable {
     mapping(uint256 => bool) public stakedTokens;
     mapping(uint256 => address) private tokenOrigins;
 
-
+    mapping(uint256 => uint256) public stakedTimestamps;
+    uint256 public rewardRate = 1e18; // 1 reward token per second per NFT
 
 
     constructor(address _nftAddress, address _rewardTokenAddress) {
@@ -40,6 +41,8 @@ contract NFTStaking is Ownable {
     // Mark the token as staked
     stakedTokens[tokenId] = true;
     tokenOrigins[tokenId] = msg.sender;
+    stakedTimestamps[tokenId] = block.timestamp;
+
     //nft.approve(address(this), tokenId);
     // Transfer the NFT to the contract
     nft.safeTransferFrom(msg.sender, address(this), tokenId);
@@ -50,12 +53,11 @@ contract NFTStaking is Ownable {
 
     function unstakeNFT(uint256 tokenId) external {
 	    require(stakedTokens[tokenId], "Token is not staked");
-	    require(tokenOrigins[tokenId] == msg.sender, "You did not desposit this NFT");
+	    require(tokenOrigins[tokenId]  == msg.sender, "You did not desposit this NFT");
 
 	    stakedTokens[tokenId] = false;
 	    // Directly transfer the NFT back to the owner without needing an approval
 	    nft.transferFrom(address(this), msg.sender, tokenId);
-
 
 	    emit NFTUnStaked(msg.sender, tokenId);
 
@@ -63,6 +65,22 @@ contract NFTStaking is Ownable {
 
     function isStaked(uint256 tokenId) external view returns (bool) {
         return stakedTokens[tokenId];
+    }
+
+    // Rewards functions
+    function setRewardRate(uint256 _newRate) external onlyOwner {
+        rewardRate = _newRate;
+    }
+
+    function calcReward(uint256 tokenId) external view returns (uint256) {
+   		uint256 stakingDuration = block.timestamp.sub(stakedTimestamps[tokenId]);
+   		return stakingDuration.mul(rewardRate);
+    }
+
+    function claimRewards(uint256 tokenId) external payable {
+    	require(tokenOrigins[tokenId] == msg.sender);
+    	uint256 rewardAmount = this.calcReward(tokenId);
+        rewardToken.transfer(msg.sender, rewardAmount);
     }
 
     // Receiving NFTs

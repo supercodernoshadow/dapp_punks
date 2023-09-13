@@ -297,6 +297,9 @@ describe('NFT', () => {
           transaction = await nft.connect(minter).mint(1, { value: COST })
           result = await transaction.wait()
 
+          transaction = await token.connect(deployer).transfer(stake.address, tokens(1000000))
+          result = await transaction.wait()
+
           const owner = await nft.ownerOf(1)
 
           await nft.connect(minter).setApprovalForAll(stake.address, true);
@@ -331,10 +334,15 @@ describe('NFT', () => {
         })
 
         it('emits unstake event', async () => {
-            const transaction = await stake.connect(minter).unstakeNFT(1);
+            const transaction = await stake.connect(minter).unstakeNFT(1)
             await expect(transaction)
                 .to.emit(stake, 'NFTUnStaked')
                 .withArgs(minter.address, 1);
+        })
+
+        it('distributes staking rewards', async () => {
+          await stake.connect(minter).claimRewards(1)
+          expect(await token.balanceOf(minter.address)).to.greaterThan(5)
         })
 
     })
@@ -342,11 +350,11 @@ describe('NFT', () => {
     describe('Failure', () => { 
 
         it('prevents non-owner from staking', async () => {
-          await expect(stake.connect(minter2).stakeNFT(1)).to.be.revertedWith('Not the owner');
+          await expect(stake.connect(minter2).stakeNFT(1)).to.be.revertedWith('Not the owner')
         })
         it('prevents non-owner from unstaking', async () => {
           await stake.connect(minter).stakeNFT(1)
-          await expect(stake.connect(minter2).unstakeNFT(1)).to.be.reverted;
+          await expect(stake.connect(minter2).unstakeNFT(1)).to.be.reverted
         })
     })
   })

@@ -1178,8 +1178,8 @@
       ]
     },
     "/Users/dareadebonojo/dapp_punks/contracts/NFT.sol": {
-      "lastModificationDate": 1694407351858,
-      "contentHash": "2843a1d73651c7a55441b697496c3982",
+      "lastModificationDate": 1694469039369,
+      "contentHash": "70a7a747cfbb46d0912eab1ecbf9a466",
       "sourceName": "contracts/NFT.sol",
       "solcConfig": {
         "version": "0.8.9",
@@ -1222,8 +1222,8 @@
       ]
     },
     "/Users/dareadebonojo/dapp_punks/contracts/NFTStaking.sol": {
-      "lastModificationDate": 1694409384113,
-      "contentHash": "d7949525453add5457f7e05f54c2a9c4",
+      "lastModificationDate": 1694469118666,
+      "contentHash": "a52a8d9afaa0bb9984c88426c0b0742f",
       "sourceName": "contracts/NFTStaking.sol",
       "solcConfig": {
         "version": "0.8.9",
