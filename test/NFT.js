@@ -15,6 +15,7 @@ describe('NFT', () => {
   const MAX_SUPPLY = 25
   const MAX_MINT = 5
   const BASE_URI = 'ipfs://QmQ2jnDYecFhrf3asEWjyjZRX1pZSsNWG3qHzmNDvXa9qg/'
+  const ROYALTY_RATE = 100
 
   beforeEach(async () => {    
     
@@ -29,6 +30,7 @@ describe('NFT', () => {
     minter5 = accounts[5]
     minter6 = accounts[6]
 
+
   })
 
   describe('Deployment', () => {
@@ -37,7 +39,7 @@ describe('NFT', () => {
     beforeEach(async () => { 
 
       NFT = await ethers.getContractFactory('NFT')
-      nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI)
+      nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI, deployer.address, ROYALTY_RATE)
       await nft.deployed()
     })
 
@@ -72,6 +74,15 @@ describe('NFT', () => {
     it('returns owner', async () => {
       expect(await nft.owner()).to.equal(deployer.address)
     })
+
+    it('has correct royalty receiver', async () => {
+      expect(await nft.royaltyReceiver()).to.equal(deployer.address)
+    })
+
+    it('has correct royalty rate', async () => {
+      expect(await nft.royaltyRate()).to.equal(100)
+    })
+
   })
 
   describe('Minting', () => {
@@ -80,7 +91,7 @@ describe('NFT', () => {
   	beforeEach(async () => {  
 
       NFT = await ethers.getContractFactory('NFT')
-      nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI)
+      nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI, deployer.address, ROYALTY_RATE)
       await nft.deployed()  
 
       await nft.connect(deployer).addAddress(minter.address)
@@ -92,7 +103,7 @@ describe('NFT', () => {
 
       beforeEach(async () => {  
         NFT = await ethers.getContractFactory('NFT')
-        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI)
+        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI, deployer.address, ROYALTY_RATE)
         await nft.deployed()  
 
         await nft.connect(deployer).addAddress(minter.address)
@@ -134,14 +145,14 @@ describe('NFT', () => {
   		it('rejects non allowList addresses', async () => {
         const ALLOW_MINTING_ON = Date.now().toString().slice(0, 10) // Now
         const NFT = await ethers.getContractFactory('NFT')
-        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI)
+        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI, deployer.address, ROYALTY_RATE)
   			await expect(nft.connect(minter).mint(1, { value: COST })).to.be.reverted
   		})
 
       it('rejects insufficient payment', async () => {
         const ALLOW_MINTING_ON = Date.now().toString().slice(0, 10) // Now
         const NFT = await ethers.getContractFactory('NFT')
-        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI)
+        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI, deployer.address, ROYALTY_RATE)
         await nft.connect(deployer).addAddress(minter.address)
         await expect(nft.connect(minter).mint(1, { value: ether(1) })).to.be.reverted
       })
@@ -149,7 +160,7 @@ describe('NFT', () => {
       it('rejects minting before allowed time', async () => {
         const ALLOW_MINTING_ON = new Date('May 26, 2030 18:00:00').getTime().toString().slice(0, 10)
         const NFT = await ethers.getContractFactory('NFT')
-        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI)
+        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI, deployer.address, ROYALTY_RATE)
         await nft.connect(deployer).addAddress(minter.address)
         await expect(nft.connect(minter).mint(1, { value: COST })).to.be.reverted
       })
@@ -157,7 +168,7 @@ describe('NFT', () => {
       it('requires at least 1 NFT to be minted', async () => {
         const ALLOW_MINTING_ON = Date.now().toString().slice(0, 10) // Now
         const NFT = await ethers.getContractFactory('NFT')
-        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI)
+        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI, deployer.address, ROYALTY_RATE)
         await nft.connect(deployer).addAddress(minter.address)
         await expect(nft.connect(minter).mint(0, { value: COST })).to.be.reverted
       })
@@ -165,7 +176,7 @@ describe('NFT', () => {
       it('does not allow more NFTs to be minted than max amount', async () => {
         const ALLOW_MINTING_ON = Date.now().toString().slice(0, 10) // Now
         const NFT = await ethers.getContractFactory('NFT')
-        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI)
+        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI, deployer.address, ROYALTY_RATE)
         await nft.connect(deployer).addAddress(minter.address)
         await nft.connect(deployer).addAddress(minter2.address)
         await nft.connect(deployer).addAddress(minter3.address)
@@ -185,7 +196,7 @@ describe('NFT', () => {
       it('does not return URIs for invalid tokens', async () => {
         const ALLOW_MINTING_ON = Date.now().toString().slice(0, 10) // Now
         const NFT = await ethers.getContractFactory('NFT')
-        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI)
+        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI, deployer.address, ROYALTY_RATE)
         nft.connect(minter).mint(1, { value: COST })
 
         await expect(nft.tokenURI('99')).to.be.reverted
@@ -194,7 +205,7 @@ describe('NFT', () => {
       it('does not allow minter more than 5 NFTs', async () => {
         const ALLOW_MINTING_ON = Date.now().toString().slice(0, 10) // Now
         const NFT = await ethers.getContractFactory('NFT')
-        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI)
+        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI, deployer.address, ROYALTY_RATE)
         await expect(nft.connect(minter).mint(6, { value: COST })).to.be.reverted
 
       })
@@ -209,7 +220,7 @@ describe('NFT', () => {
 
     beforeEach(async () => {
       const NFT = await ethers.getContractFactory('NFT')
-      nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI)
+      nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI, deployer.address, ROYALTY_RATE)
       await nft.connect(deployer).addAddress(minter.address)
 
       // Mint 3 nfts
@@ -240,7 +251,7 @@ describe('NFT', () => {
 
       beforeEach(async () => {
         const NFT = await ethers.getContractFactory('NFT')
-        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI)
+        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI, deployer.address, ROYALTY_RATE)
         await nft.connect(deployer).addAddress(minter.address)
 
         transaction = await nft.connect(minter).mint(1, { value: COST })
@@ -271,7 +282,7 @@ describe('NFT', () => {
       it('prevents non-owner from withdrawing', async () => {
         const ALLOW_MINTING_ON = Date.now().toString().slice(0, 10) // Now
         const NFT = await ethers.getContractFactory('NFT')
-        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI)
+        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI, deployer.address, ROYALTY_RATE)
         nft.connect(minter).mint(1, { value: COST })
 
         await expect(nft.connect(minter).withdraw()).to.be.reverted
@@ -284,7 +295,7 @@ describe('NFT', () => {
 
     beforeEach(async () => {
           const NFT = await ethers.getContractFactory('NFT')
-          nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI)
+          nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI, deployer.address, ROYALTY_RATE)
           await nft.connect(deployer).addAddress(minter.address)
 
           const RewardsTokenSupply = ether(1000000000)
@@ -364,7 +375,7 @@ describe('NFT', () => {
 
       beforeEach(async () => {
         const NFT = await ethers.getContractFactory('NFT')
-        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI)
+        nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI, deployer.address, ROYALTY_RATE)
         await nft.connect(deployer).addAddress(minter.address)
 
         transaction = await nft.connect(minter).mint(1, { value: COST })
@@ -379,8 +390,41 @@ describe('NFT', () => {
 
     it('allows owner to pause mint', async () => {
         await nft.connect(deployer).pauseMint()
-
         await expect(nft.connect(minter).mint(1, { value: COST })).to.be.reverted
     })
+  })
+
+  describe('Royalties', () => {
+    const ALLOW_MINTING_ON = Date.now().toString().slice(0, 10) // Now
+
+    beforeEach(async () => {
+      const NFT = await ethers.getContractFactory('NFT')
+      nft = await NFT.deploy(NAME, SYMBOL, COST, MAX_SUPPLY, MAX_MINT, ALLOW_MINTING_ON, BASE_URI, deployer.address, ROYALTY_RATE)
+      await nft.connect(deployer).addAddress(minter.address)
+
+      transaction = await nft.connect(minter).mint(1, { value: COST })
+      result = await transaction.wait()
+
+    })
+
+    describe('Success', () => { 
+      it('allows owner set new royalty receiver', async () => {
+        await nft.connect(deployer).setRoyaltyReceiver(minter.address)
+        expect(await nft.royaltyReceiver()).to.equal(minter.address)
+      })
+
+      it('allows owner set new royalty rate', async () => {
+        await nft.connect(deployer).setRoyaltyRate('200')
+        expect(await nft.royaltyRate()).to.equal('200')
+      })
+
+    })
+
+    describe('Failure', () => { 
+
+       
+    })
+
+
   })
 })

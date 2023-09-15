@@ -35,20 +35,20 @@ contract NFTStaking is Ownable {
     }
 
 	function stakeNFT(uint256 tokenId) external {
-    require(nft.ownerOf(tokenId) == msg.sender, "Not the owner");
-    require(!stakedTokens[tokenId], "Token already staked");
+	    require(nft.ownerOf(tokenId) == msg.sender, "Not the owner");
+	    require(!stakedTokens[tokenId], "Token already staked");
 
-    // Mark the token as staked
-    stakedTokens[tokenId] = true;
-    tokenOrigins[tokenId] = msg.sender;
-    stakedTimestamps[tokenId] = block.timestamp;
+	    // Mark the token as staked
+	    stakedTokens[tokenId] = true;
+	    tokenOrigins[tokenId] = msg.sender;
+	    stakedTimestamps[tokenId] = block.timestamp;
 
-    //nft.approve(address(this), tokenId);
-    // Transfer the NFT to the contract
-    nft.safeTransferFrom(msg.sender, address(this), tokenId);
+	    //nft.approve(address(this), tokenId);
+	    // Transfer the NFT to the contract
+	    nft.safeTransferFrom(msg.sender, address(this), tokenId);
 
 
-    emit NFTStaked(msg.sender, tokenId);
+	    emit NFTStaked(msg.sender, tokenId);
     }
 
     function unstakeNFT(uint256 tokenId) external {

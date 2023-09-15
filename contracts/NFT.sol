@@ -19,6 +19,10 @@ interface IMyERC721 is IERC721 {
 interface IMyERC721Receiver is IERC721Receiver {
    function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) external returns (bytes4);
 }
+
+interface IERC2981 {
+    function royaltyInfo(uint256 tokenId, uint256 salePrice) external view returns (address receiver, uint256 royaltyAmount);
+}
     
 contract NFT is ERC721Enumerable, Ownable {
     using Strings for uint256;
@@ -30,11 +34,10 @@ contract NFT is ERC721Enumerable, Ownable {
     string public baseURI;
     string public baseExtension = '.json';
     bool public pauseMinting = false;
+    address public royaltyReceiver;
+    uint256 public royaltyRate;
   
     mapping(bytes32 => bool) private allowList;
-    // Mapping from token ID to the address that minted it
-    mapping(uint256 => uint256) public stakedTimestamps;
-
 
     event Mint(uint256 amount, address minter);
     event Withdraw(uint256 amount, address owner);
@@ -48,12 +51,17 @@ contract NFT is ERC721Enumerable, Ownable {
         uint256 _maxSupply,
         uint256 _maxMint,
         uint256 _allowMintingOn,
-        string memory _baseURI) ERC721(_name, _symbol) {
+        string memory _baseURI,
+        address _royaltyReceiver,
+        uint256 _royaltyRate) ERC721(_name, _symbol) {
+        require(_royaltyRate <= 10000, "Royalty cannot exceed 100%");
         cost = _cost;
         maxSupply = _maxSupply;
         maxMint = _maxMint;
         allowMintingOn = _allowMintingOn;
         baseURI = _baseURI;
+        royaltyReceiver = _royaltyReceiver;
+        royaltyRate = _royaltyRate;
     }
 
 
@@ -130,6 +138,15 @@ contract NFT is ERC721Enumerable, Ownable {
 
     function unPauseMint() public onlyOwner {
         pauseMinting = false;
+    }
+
+    function setRoyaltyRate(uint256 _royaltyRate) public onlyOwner {
+        require(_royaltyRate <= 10000, "Royalty cannot be above 100%");
+        royaltyRate = _royaltyRate;
+    }
+
+    function setRoyaltyReceiver(address _royaltyReceiver) public onlyOwner {
+        royaltyReceiver = _royaltyReceiver;
     }
 
 }
